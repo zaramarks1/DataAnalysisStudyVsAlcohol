@@ -14,17 +14,102 @@ This is an R Markdown document. Markdown is a simple formatting syntax for autho
 
 When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
 
-```{r cars}
-summary(cars)
-print("test")
+```{r }
+data<-read.csv("Maths.csv")
+library(lattice)
+library(reticulate)
+library(tidyverse)
 ```
 
-## Including Plots
+## Histogram 
 
-You can also embed plots, for example:
+We will do some histograms to have a better understanding of the data used. 
 
-```{r pressure, echo=FALSE}
-plot(pressure)
+```{r}
+
+par(mfrow = c(2, 2))
+
+#Histogram of Petal Width with 10 bins
+hist(data$G1,
+          main="Grade First Semerter",
+          xlab="Grade")
+
+hist(data$G2,
+          main="Grade Second Semerter",
+          xlab="Grade")
+
+hist(data$absences,
+          main="Absenses of students",
+          xlab="Nb of Absence")
+
+hist(data$absences,
+          main="Age",
+          xlab="Age")
 ```
 
 Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
+
+## Barplot
+
+Since we have a lot of columns with defined variables, it is interesting to make some barplots so we can get a better uderstanding of the dataset.
+
+### Barplots related to studying
+
+```{r}
+
+par(mfrow = c(2, 2))
+
+barplot(table(data$higher),  main="Students who wants to get a higher education")
+barplot(table(data$studytime), main = "Amount of study time")
+barplot(table(data$activities), main = "Extra-curricular activities")
+barplot(table(data$paid), main = "Paid courses")
+
+```
+> Comments 
+
+### Barplots related to drinking
+
+```{r}
+
+par(mfrow = c(2, 2))
+barplot(table(data$freetime),  main="Amount of free time")
+barplot(table(data$goout), main = "Going out with friends")
+barplot(table(data$Dalc), main = "Workday alcohol consumption")
+barplot(table(data$Walc), main = "Weekend alcohol consumption")
+
+```
+> Comment
+
+## Boxplots 
+
+Now that we undertand our dataset a little bit, we will do some boxplots to analyze is some of our data have outliers and/or if the values are spread out or not.
+
+
+```{r}
+par(mfrow = c(1, 2))
+
+boxplot(data$absences, main = "Absences")
+boxplot(data$age, main = "Age")
+```
+
+## Histogram with overlay
+
+```{r}
+ggplot(data = data, aes(x = G3)) +
+  geom_histogram(aes(fill = paid), bins = 30, color = "black") 
+
+
+
+
+```
+
+## Other graphs with overlay
+
+```{r}
+
+plot(data$age, data$Walc, main="Scatterplot Example",
+   xlab="Age ", ylab="Weekend alcohol", pch=19)
+
+ggplot(data, aes(x = studytime, y = Walc)) +
+  geom_count(alpha = 0.5)
+```
