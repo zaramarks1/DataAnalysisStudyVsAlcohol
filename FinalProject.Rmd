@@ -4,22 +4,47 @@ output: html_document
 date: "2022-11-22"
 ---
 
-```{r setup, include=FALSE}
+```{r setup, include=FALSE, echo = FALSE}
 knitr::opts_chunk$set(echo = TRUE)
-```
-
-## R Markdown
-
-This is an R Markdown document. Markdown is a simple formatting syntax for authoring HTML, PDF, and MS Word documents. For more details on using R Markdown see <http://rmarkdown.rstudio.com>.
-
-When you click the **Knit** button a document will be generated that includes both content as well as the output of any embedded R code chunks within the document. You can embed an R code chunk like this:
-
-```{r }
 data<-read.csv("Maths.csv")
 library(lattice)
 library(reticulate)
 library(tidyverse)
+library(dplyr)
+library(MLmetrics)
+library(MASS)
 ```
+
+# Data Preparation
+
+## Summary
+```{r}
+summary(data)
+```
+
+## Dimensions
+```{r}
+
+dim(data)
+
+```
+
+## Missing Values
+```{r}
+
+sum(is.na(data))
+```
+
+## Type of data
+```{r}
+
+print(str(data))
+
+```
+
+
+
+# Data Exploration(EDA)
 
 ## Histogram 
 
@@ -35,14 +60,14 @@ hist(data$G1,
           xlab="Grade")
 
 hist(data$G2,
-          main="Grade Second Semerter",
+          main="Grade Second Semester",
           xlab="Grade")
 
-hist(data$absences,
-          main="Absenses of students",
-          xlab="Nb of Absence")
+hist(data$G3,
+          main="Overall grade",
+          xlab="Grade")
 
-hist(data$absences,
+hist(data$age,
           main="Age",
           xlab="Age")
 ```
@@ -95,10 +120,9 @@ boxplot(data$age, main = "Age")
 ## Histogram with overlay
 
 ```{r}
-ggplot(data = data, aes(x = G3)) +
-  geom_histogram(aes(fill = paid), bins = 30, color = "black") 
 
-
+ggplot(data = data, aes(x = Walc)) +
+  geom_histogram(aes(fill = sex), bins = 30, color = "black") 
 
 
 ```
@@ -107,9 +131,91 @@ ggplot(data = data, aes(x = G3)) +
 
 ```{r}
 
-plot(data$age, data$Walc, main="Scatterplot Example",
-   xlab="Age ", ylab="Weekend alcohol", pch=19)
-
 ggplot(data, aes(x = studytime, y = Walc)) +
   geom_count(alpha = 0.5)
+
+ggplot(data, aes(x = G3, y = Walc)) +
+  geom_count(alpha = 0.5)
 ```
+
+# Data Analysis
+
+## Hypothesis Testing
+```{r}
+alcohol <- data[c('age','failures', 'sex', 'G2', 'G3', 'Dalc', 'Walc', 'studytime', 'failures', 'goout')]
+str(alcohol)
+```
+
+### Effect of alcohol on grades
+
+h0: Mean of grade of people who drink more = Mean of grade of people who drink less
+h1: Mean of people who drink more != Mean of people who drink less
+
+```{r}
+less <- alcohol[alcohol['Walc'] < 3,]
+more <- alcohol[alcohol['Walc'] > 2,]
+t.test(more$G3, less$G3)
+```
+
+### Effect of study time on grades
+
+h0: Mean of grades of people who study more = Mean of grades of people who study less
+h1: Mean of grades of people who study more != Mean of grades of people who study less
+
+```{r}
+less <- alcohol[alcohol['studytime'] < 3,]
+more <- alcohol[alcohol['studytime'] > 2,]
+t.test(more$G3, less$G3)
+```
+### Relation between failure and drinking
+
+h0: Mean of alcohol of people who fail more = Mean of alcohol of people who fail less
+h1: Mean of alcohol of people who fail more != Mean of alcohol of people who fail less
+
+```{r}
+less <- alcohol[alcohol['failures'] < 3,]
+more <- alcohol[alcohol['failures'] > 2,]
+t.test(more$Walc, less$Walc)
+```
+### Relation between gender and drinking
+
+h0: Mean of alcohol of woman = Mean of alcohol of men
+h1: Mean of alcohol of woman != Mean of alcohol of men
+
+```{r}
+female <- alcohol[alcohol['sex'] == 'F',]
+male <- alcohol[alcohol['sex'] == 'M',]
+t.test(female$Walc, male$Walc)
+```
+
+## Linear regression model
+
+### Forward Stepwise
+
+```{r}
+# Create a null model 
+intercept_only <- lm(G3 ~ 1, data=data)
+# Create a full model
+all <- lm(G3~., data=data)
+# perform forward step-wise regression
+forward <- stepAIC (intercept_only, direction='forward',scope = formula(all))
+forward$anova
+```
+
+### Model
+```{r}
+summary(forward)
+```
+```{r}
+plot(forward)
+```
+
+### MAE and MSE
+```{r}
+ypred_forward <- predict(object = forward, newdata = data)
+MAE(y_pred = ypred_forward, y_true = data$G3)
+```
+```{r}
+MSE(y_pred = ypred_forward, y_true = data$G3)
+```
+
