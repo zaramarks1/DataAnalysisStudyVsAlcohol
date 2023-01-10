@@ -1,8 +1,11 @@
 # DataAnalysisStudyVsAlcohol
 This project consists on reserching if alcochol impacts students performance. 
 
-## Languages used : R Markdown, Python, HTML
-## Environment: RStudio
+## Languages used 
+R Markdown, Python, HTML
+## Environment
+RStudio
+
 
 
 
