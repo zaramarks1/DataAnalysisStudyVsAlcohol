@@ -114,7 +114,9 @@ Now that we undertand our dataset a little bit, we will do some boxplots to anal
 par(mfrow = c(1, 2))
 
 boxplot(data$absences, main = "Absences")
+summary(data$absences)
 boxplot(data$age, main = "Age")
+summary(data$age)
 ```
 
 ## Histogram with overlay
@@ -154,6 +156,7 @@ h1: Mean of people who drink more != Mean of people who drink less
 ```{r}
 less <- alcohol[alcohol['Walc'] < 3,]
 more <- alcohol[alcohol['Walc'] > 2,]
+var.test(more$G3, less$G3)
 t.test(more$G3, less$G3)
 ```
 
@@ -165,7 +168,8 @@ h1: Mean of grades of people who study more != Mean of grades of people who stud
 ```{r}
 less <- alcohol[alcohol['studytime'] < 3,]
 more <- alcohol[alcohol['studytime'] > 2,]
-t.test(more$G3, less$G3)
+var.test(more$G3, less$G3)
+t.test(more$G3, less$G3, var.equal = FALSE)
 ```
 ### Relation between failure and drinking
 
@@ -173,8 +177,12 @@ h0: Mean of alcohol of people who fail more = Mean of alcohol of people who fail
 h1: Mean of alcohol of people who fail more != Mean of alcohol of people who fail less
 
 ```{r}
-less <- alcohol[alcohol['failures'] < 3,]
-more <- alcohol[alcohol['failures'] > 2,]
+less <- data[data['failures'] < 3,]
+more <- data[data['failures'] > 2,]
+t.test(more$Walc, less$Walc)
+
+less <- data[data['absences'] < 46,]
+more <- data[data['absences'] > 47,]
 t.test(more$Walc, less$Walc)
 ```
 ### Relation between gender and drinking
@@ -208,12 +216,26 @@ summary(forward)
 ```
 ```{r}
 plot(forward)
+train.control <- trainControl(method = "cv", number = 10)
+forward.model <- train(Fertility ~., data = data,
+                    method = "lmStepAIC", 
+                    trControl = train.control,
+                    trace = FALSE
+                    )
+# Model accuracy
 ```
 
 ### MAE and MSE
 ```{r}
-ypred_forward <- predict(object = forward, newdata = data)
+dataM<-read.csv("Portuguese.csv")
+dataM.predict <- predict(object = forward, newdata = dataM)
+
+diff <- abs(dataM$G3 - dataM.predict)
+
+print(mean(diff))
+
 MAE(y_pred = ypred_forward, y_true = data$G3)
+plot(ypred_forward)
 ```
 ```{r}
 MSE(y_pred = ypred_forward, y_true = data$G3)
